@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLM Studio — Local AI Playground</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">Δ</div>
+        <div class="brand-text">
+          <span class="brand-name">SLM Studio</span>
+          <span class="brand-sub">Local AI Playground</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-section="dashboard">
+          <span class="nav-icon">◉</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-section="chat">
+          <span class="nav-icon">💬</span>
+          <span>Chat</span>
+        </button>
+        <button class="nav-btn" data-section="benchmark">
+          <span class="nav-icon">⚡</span>
+          <span>Benchmark</span>
+        </button>
+        <button class="nav-btn" data-section="models">
+          <span class="nav-icon">▦</span>
+          <span>Models</span>
+        </button>
+        <button class="nav-btn" data-section="system">
+          <span class="nav-icon">⛭</span>
+          <span>System</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="connection-status" id="connectionStatus">
+          <span class="status-dot offline"></span>
+          <span>Connecting...</span>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Ollama URL</label>
+          <input type="text" id="ollamaUrl" value="http://localhost:11434" class="settings-input">
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+
+      <!-- DASHBOARD -->
+      <section class="section active" id="section-dashboard">
+        <div class="section-header">
+          <h1>Dashboard</h1>
+          <p class="section-desc">Overview of your local SLM environment</p>
+          <div class="dashboard-stats" id="dashboardStats">
+            <div class="stat-card"><div class="stat-value" id="statModels">—</div><div class="stat-label">Models</div></div>
+            <div class="stat-card"><div class="stat-value" id="statRunning">—</div><div class="stat-label">Running</div></div>
+            <div class="stat-card"><div class="stat-value" id="statBenchmarked">—</div><div class="stat-label">Benchmarked</div></div>
+            <div class="stat-card"><div class="stat-value" id="statUptime">—</div><div class="stat-label">Ollama Status</div></div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header"><h3>Quick Chat</h3></div>
+            <div class="card-body">
+              <select id="quickModel" class="form-select"></select>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input type="text" id="quickPrompt" placeholder="Ask anything..." class="form-input" style="flex:1">
+                <button class="btn btn-primary" onclick="quickChat()">Go</button>
+              </div>
+              <div id="quickResponse" class="quick-response"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Recent Benchmarks</h3></div>
+            <div class="card-body" id="recentBenchmarks">
+              <p class="text-muted">No benchmarks yet. Run one in <a href="#" onclick="switchSection('benchmark')">Benchmark</a>.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Model Size Comparison</h3></div>
+            <div class="card-body" id="modelSizeChart"><p class="text-muted">Pull some models to see them here.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHAT -->
+      <section class="section" id="section-chat">
+        <div class="section-header">
+          <h1>Chat</h1>
+          <p class="section-desc">Talk to any local model</p>
+        </div>
+        <div class="chat-container">
+          <div class="chat-sidebar">
+            <select id="chatModel" class="form-select"></select>
+            <div class="chat-params">
+              <label>Temperature</label>
+              <input type="range" id="chatTemp" min="0" max="2" step="0.1" value="0.7">
+              <span id="chatTempVal">0.7</span>
+            </div>
+            <button class="btn btn-outline btn-full" onclick="clearChat()">Clear Chat</button>
+          </div>
+          <div class="chat-main">
+            <div class="chat-messages" id="chatMessages">
+              <div class="message system-msg">Select a model and start chatting.</div>
+            </div>
+            <div class="chat-input-area">
+              <textarea id="chatInput" rows="2" placeholder="Type a message..." class="chat-input"></textarea>
+              <button class="btn btn-primary" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BENCHMARK -->
+      <section class="section" id="section-benchmark">
+        <div class="section-header">
+          <h1>Benchmark</h1>
+          <p class="section-desc">Measure tokens/sec, latency, and memory usage</p>
+        </div>
+        <div class="benchmark-controls">
+          <div class="bench-form">
+            <label>Model</label>
+            <select id="benchModel" class="form-select"></select>
+          </div>
+          <div class="bench-form">
+            <label>Prompt Length</label>
+            <select id="benchPromptLength" class="form-select">
+              <option value="short">Short (50 tokens)</option>
+              <option value="medium" selected>Medium (200 tokens)</option>
+              <option value="long">Long (500 tokens)</option>
+            </select>
+          </div>
+          <div class="bench-form">
+            <label>Max Tokens</label>
+            <input type="number" id="benchMaxTokens" value="256" class="form-input">
+          </div>
+          <button class="btn btn-primary" onclick="runBenchmark()">Run Benchmark</button>
+        </div>
+        <div class="benchmark-progress" id="benchProgress" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="benchProgressFill"></div></div>
+          <p id="benchProgressText">Running...</p>
+        </div>
+        <div class="benchmark-results" id="benchResults" style="display:none">
+          <div class="card">
+            <div class="card-header"><h3>Results</h3></div>
+            <div class="card-body bench-results-grid" id="benchResultsGrid"></div>
+          </div>
+        </div>
+        <div class="benchmark-history" id="benchHistory">
+          <div class="card">
+            <div class="card-header"><h3>Benchmark History</h3></div>
+            <div class="card-body"><table class="table" id="benchTable"><thead><tr><th>Model</th><th>Tokens/s</th><th>Latency</th><th>Tokens</th><th>Time</th></tr></thead><tbody id="benchTbody"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MODELS -->
+      <section class="section" id="section-models">
+        <div class="section-header">
+          <h1>Models</h1>
+          <p class="section-desc">Manage your local models</p>
+          <div class="model-actions">
+            <div style="display:flex;gap:8px;flex:1">
+              <input type="text" id="pullModelName" placeholder="e.g. llama3.2:1b" class="form-input" style="flex:1">
+              <button class="btn btn-primary" onclick="pullModel()">Pull</button>
+            </div>
+          </div>
+        </div>
+        <div class="model-grid" id="modelGrid"></div>
+      </section>
+
+      <!-- SYSTEM -->
+      <section class="section" id="section-system">
+        <div class="section-header">
+          <h1>System</h1>
+          <p class="section-desc">Hardware info & inference engineering insights</p>
+        </div>
+        <div class="system-grid">
+          <div class="card">
+            <div class="card-header"><h3>Inference Engineering</h3></div>
+            <div class="card-body">
+              <div class="info-row"><span class="info-label">Quantization</span><span class="info-value">Reduces model precision (e.g. 4-bit vs 8-bit) to fit smaller GPUs</span></div>
+              <div class="info-row"><span class="info-label">VRAM</span><span class="info-value">Larger models need more GPU memory; Q4_K_M ~4.5GB for 7B params</span></div>
+              <div class="info-row"><span class="info-label">Tokens/sec</span><span class="info-value">Throughput metric — higher is better for real-time apps</span></div>
+              <div class="info-row"><span class="info-label">Latency</span><span class="info-value">Time to first token — critical for interactive use</span></div>
+              <div class="info-row"><span class="info-label">Memory Tradeoffs</span><span class="info-value">Smaller quantizations save memory but may reduce quality</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Model Size Reference</h3></div>
+            <div class="card-body"><div class="model-ref-table" id="modelRefTable"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Edge AI Readiness</h3></div>
+            <div class="card-body">
+              <p>Small Language Models (1B-7B parameters) are ideal for edge deployment:</p>
+              <ul class="edge-list">
+                <li><strong>Quantized 1B models</strong> run on phones & Raspberry Pi</li>
+                <li><strong>3B-4B models</strong> run on laptops without GPU</li>
+                <li><strong>7B models</strong> need ~4-6GB VRAM, run on mid-range GPUs</li>
+                <li><strong>Offline-first</strong> — no internet needed after download</li>
+                <li><strong>Privacy</strong> — data never leaves your device</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/benchmark.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "slm-ollama-app",
+  "version": "1.0.0",
+  "description": "Local SLM App — Ollama Model Manager & Benchmarker",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "dev": "npx serve . -l 3000"
+  }
+}

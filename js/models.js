@@ -1,3 +1,9 @@
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
 async function loadModels() {
   try {
     const models = await Api.listModels();
@@ -9,7 +15,7 @@ async function loadModels() {
     updateDashboardStats(models, running);
     renderModelRef(models);
   } catch (err) {
-    document.getElementById('modelGrid').innerHTML = `<p class="text-muted">Could not connect: ${err.message}</p>`;
+    document.getElementById('modelGrid').innerHTML = `<p class="text-muted">Could not connect: ${escapeHtml(err.message)}</p>`;
   }
 }
 
@@ -27,20 +33,27 @@ function renderModels(models, runningNames) {
     return `
       <div class="model-card ${isRunning ? 'running' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:start">
-          <div class="model-name">${m.name}</div>
+          <div class="model-name">${escapeHtml(m.name)}</div>
           ${isRunning ? '<span class="model-tag q4" style="font-size:10px">RUNNING</span>' : ''}
         </div>
-        <div class="model-detail">Family: ${family}</div>
+        <div class="model-detail">Family: ${escapeHtml(family)}</div>
         <div class="model-detail">Size: ${sizeGb} GB</div>
-        <div class="model-detail">Quant: <span class="model-tag ${quant}">${m.details?.quantization_level || 'unknown'}</span></div>
+        <div class="model-detail">Quant: <span class="model-tag ${quant}">${escapeHtml(m.details?.quantization_level || 'unknown')}</span></div>
         <div class="model-detail">Modified: ${new Date(m.modified).toLocaleDateString()}</div>
         <div class="model-card-actions">
-          <button class="btn btn-sm btn-outline" onclick="useModel('${m.name}')">Chat</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteModelConfirm('${m.name}')">Delete</button>
+          <button class="btn btn-sm btn-outline" data-use-model="${escapeHtml(m.name)}">Chat</button>
+          <button class="btn btn-sm btn-danger" data-delete-model="${escapeHtml(m.name)}">Delete</button>
         </div>
       </div>
     `;
   }).join('');
+
+  grid.querySelectorAll('[data-use-model]').forEach(button => {
+    button.addEventListener('click', () => useModel(button.dataset.useModel));
+  });
+  grid.querySelectorAll('[data-delete-model]').forEach(button => {
+    button.addEventListener('click', () => deleteModelConfirm(button.dataset.deleteModel));
+  });
 }
 
 function detectQuantization(name, details) {
@@ -58,7 +71,7 @@ function updateModelSelects(models) {
     const sel = document.getElementById(id);
     if (!sel) return;
     const current = sel.value;
-    sel.innerHTML = names.map(n => `<option value="${n}" ${n === current ? 'selected' : ''}>${n}</option>`).join('');
+     sel.innerHTML = names.map(n => `<option value="${escapeHtml(n)}" ${n === current ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
   });
 }
 
@@ -69,7 +82,7 @@ function updateDashboardStats(models, running) {
   document.getElementById('statBenchmarked').textContent = benchCount;
 
   const quickSel = document.getElementById('quickModel');
-  if (models.length) quickSel.innerHTML = models.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  if (models.length) quickSel.innerHTML = models.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');
 }
 
 function renderModelRef(models) {

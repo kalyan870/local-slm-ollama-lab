@@ -85,12 +85,12 @@ function displayBenchResults(bench) {
   results.style.display = 'block';
 
   grid.innerHTML = `
-    <div class="bench-result-item"><div class="bench-result-value">${bench.tokensPerSec}</div><div class="bench-result-label">Tokens/sec</div></div>
-    <div class="bench-result-item"><div class="bench-result-value">${bench.latency}s</div><div class="bench-result-label">Time to First Token</div></div>
-    <div class="bench-result-item"><div class="bench-result-value">${bench.totalTime}s</div><div class="bench-result-label">Total Time</div></div>
-    <div class="bench-result-item"><div class="bench-result-value">${bench.evalCount}</div><div class="bench-result-label">Tokens Generated</div></div>
-    <div class="bench-result-item"><div class="bench-result-value">${bench.evalDuration}s</div><div class="bench-result-label">Eval Duration</div></div>
-    <div class="bench-result-item"><div class="bench-result-value">${bench.promptEvalCount}</div><div class="bench-result-label">Prompt Tokens</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.tokensPerSec)}</div><div class="bench-result-label">Tokens/sec</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.latency)}s</div><div class="bench-result-label">Time to First Token</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.totalTime)}s</div><div class="bench-result-label">Total Time</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.evalCount)}</div><div class="bench-result-label">Tokens Generated</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.evalDuration)}s</div><div class="bench-result-label">Eval Duration</div></div>
+    <div class="bench-result-item"><div class="bench-result-value">${escapeHtml(bench.promptEvalCount)}</div><div class="bench-result-label">Prompt Tokens</div></div>
   `;
 }
 
@@ -102,11 +102,11 @@ function renderBenchHistory() {
   }
   tbody.innerHTML = benchmarkHistory.slice(0, 20).map(b => `
     <tr>
-      <td><strong>${b.model}</strong></td>
-      <td>${b.tokensPerSec}</td>
-      <td>${b.latency}s</td>
-      <td>${b.evalCount}</td>
-      <td>${b.totalTime}s</td>
+      <td><strong>${escapeHtml(b.model)}</strong></td>
+      <td>${escapeHtml(b.tokensPerSec)}</td>
+      <td>${escapeHtml(b.latency)}s</td>
+      <td>${escapeHtml(b.evalCount)}</td>
+      <td>${escapeHtml(b.totalTime)}s</td>
     </tr>
   `).join('');
 }
